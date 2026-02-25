@@ -2,15 +2,11 @@ import pandas as pd
 import joblib
 import streamlit as st
 
-
-
 # Load model and scaler
 model = joblib.load("acl_risk_model.pkl")
 scaler = joblib.load("scaler.pkl")
 
-
 st.title("🏃‍♂️ ACL Risk Score Predictor")
-
 
 # Inputs
 age = st.number_input("Age", 13, 25)
@@ -26,8 +22,6 @@ rest_days = st.number_input("Rest Between Events (days)", 0, 7)
 load_balance = st.number_input("Load Balance Score (0–10)", 0, 10)
 weight = st.number_input("Weight (kg)", 45, 105)
 height = st.number_input("Height (cm)", 120, 220)
-
-
 
 # Preparing input
 input_df = pd.DataFrame({
@@ -46,25 +40,32 @@ input_df = pd.DataFrame({
     "Height_cm": [height]
 })
 
+# SOLUTION: Define the feature names that your model expects
+# Replace these with the ACTUAL feature names used during training
+model_feature_names = [
+    "Age", "Sex", "Sport", "Affiliation", "BMI", 
+    "Recovery_Days_Per_Week", "Training_Hours_Per_Week", 
+    "Training_Intensity", "Match_Count_Per_Week", 
+    "Rest_Between_Events_Days", "Load_Balance_Score", 
+    "Weight_kg", "Height_cm"
+]
 
-for col in model.feature_names_in_:
+# Align columns with what model expects
+for col in model_feature_names:
     if col not in input_df.columns:
         input_df[col] = 0
-input_df = input_df[model.feature_names_in_]
-
+input_df = input_df[model_feature_names]
 
 # Scale and predict
 scaled = scaler.transform(input_df)
 scaled_df = pd.DataFrame(scaled, columns=input_df.columns)
 prediction = model.predict(scaled_df)[0]
 
-
 st.subheader(f"Predicted ACL Risk Score: {prediction:.2f}")
 
 if prediction > 4:
-    st.error("ACL risk too high! You're advised to contact a health professional. Do you want to be connected with a health proffesional?")
+    st.error("ACL risk too high! You're advised to contact a health professional. Do you want to be connected with a health professional?")
     st.link_button("Get connected", "https://tobi3333a.github.io/Final-Four-s-ACL-Injury-Website/health.html")
 else:
     st.success("You're good to go. Do you still want to be connected with a health professional?")
     st.link_button("Get connected", "https://tobi3333a.github.io/Final-Four-s-ACL-Injury-Website/HTML-Files/health.html")
-
